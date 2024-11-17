@@ -3,7 +3,10 @@ import numpy as np
 class HungarianAlgorithm:
 
     @staticmethod
-    def execute(weight_matrix: np.array) -> np.array:
+    def execute(
+            weight_matrix: np.array,
+            is_maximization: bool = False
+    ) -> np.array:
 
         weight_matrix = np.array(weight_matrix)
 
@@ -15,7 +18,8 @@ class HungarianAlgorithm:
         reduced_matrix = HungarianAlgorithm.__reduce_matrix(
             weight_matrix,
             rows_count,
-            columns_count
+            columns_count,
+            is_maximization
         )
 
         marked_matrix = HungarianAlgorithm.__get_marked_matrix(
@@ -142,9 +146,16 @@ class HungarianAlgorithm:
     def __reduce_matrix(
             weight_matrix: np.array,
             rows_count: int,
-            columns_count: int
+            columns_count: int,
+            is_maximization: bool = False
     ) -> np.array:
         weight_matrix_copy = weight_matrix.copy()
+
+        if is_maximization:
+            weight_matrix_copy = HungarianAlgorithm.__subtract_max_elem_from_rows_and_negate(
+                weight_matrix_copy,
+                rows_count
+            )
 
         return HungarianAlgorithm.__subtract_min_elem_from_columns(
             HungarianAlgorithm.__subtract_min_elem_from_rows(
@@ -172,6 +183,18 @@ class HungarianAlgorithm:
 
         return weight_matrix
 
+    @staticmethod
+    def __subtract_max_elem_from_rows_and_negate(
+            weight_matrix: np.array,
+            rows_count: int
+    ) -> np.array:
+        for i in range(rows_count):
+            weight_matrix[i] -= weight_matrix[i].max()
+
+        weight_matrix *= -1
+
+        return weight_matrix
+
 
 weight_matrix = [
     [7, 3, 6, 9, 5],
@@ -187,7 +210,8 @@ weight_matrix = [
 #         [3, 2, 2]
 #     ]
 
-result = HungarianAlgorithm.execute(weight_matrix)
+# result = HungarianAlgorithm.execute(weight_matrix)
+result = HungarianAlgorithm.execute(weight_matrix, is_maximization=True)
 
 print(result)
 print(np.sum(result))
