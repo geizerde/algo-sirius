@@ -39,7 +39,6 @@ class BinarySearchTree:
             return 0
         return max(self.__height(node.left), self.__height(node.right)) + 1
 
-
     def height(self) -> int:
         if self.root is None:
             return 0

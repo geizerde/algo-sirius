@@ -161,7 +161,8 @@ class HungarianAlgorithm:
             HungarianAlgorithm.__subtract_min_elem_from_rows(
                 weight_matrix_copy,
                 rows_count
-            ), columns_count)
+            ), columns_count
+        )
 
     @staticmethod
     def __subtract_min_elem_from_rows(

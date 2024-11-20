@@ -67,7 +67,6 @@ class BellmanFordAlgorithm:
 
         print(path)
 
-
     @staticmethod
     def __edges_has_negative_weight_cycle(edges: list[Edge], distances: list[int]) -> bool:
         for edge in edges:
