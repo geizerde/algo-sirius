@@ -47,7 +47,9 @@ class BinarySearchTree:
 
     def __rotate_to_left(self, node: Node) -> Node:
         if node.right is None:
-            raise Exception('Не возможно совершить поворот налево т.к. справа нет ноды, которая могла бы стать новым корнем поддерва')
+            raise Exception(
+                'It is impossible to make a left turn because there is no node on the right that could become a new root of the subtree'
+            )
 
         old_root = node
         new_root = node.right
@@ -60,7 +62,9 @@ class BinarySearchTree:
 
     def __rotate_to_right(self, node: Node) -> Node:
         if node.left is None:
-            raise Exception('Не возможно совершить поворот направо т.к. слева нет ноды, которая могла бы стать новым корнем поддерва')
+            raise Exception(
+                'It is impossible to make a right turn because there is no node on the left that could become a new root of the subtree'
+            )
 
         old_root = node
         new_root = node.left
@@ -176,7 +180,7 @@ class BinarySearchTree:
         self.root = self.__invert(self.root)
 
 # tree = BinarySearchTree()
-
+#
 # tree.add(6)
 # tree.add(20)
 # tree.add(60)
@@ -213,4 +217,6 @@ class BinarySearchTree:
 # tree.delete(60)
 # tree.delete(8)
 #
+
+# tree.balance()
 # print(tree)

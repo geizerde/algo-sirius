@@ -62,7 +62,7 @@ class LinkedList:
             count += 1
 
         if not current:
-            print('Не правильно задана позиция')
+            print('Position is set incorrectly')
             return
 
         new_node.next = current.next

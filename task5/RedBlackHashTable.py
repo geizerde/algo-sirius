@@ -14,8 +14,8 @@ class RedBlackHashTable:
 
         return node.data if node is not None else None
 
-    def delete(self, key: int) -> None:
-        raise NotImplementedError("Метод удаления еще не реализован в RedBlackTree")
+    def delete(self, key: any) -> None:
+        self.tree.delete(key.__hash__())
 
 ht = RedBlackHashTable()
 ht.put("Anton1", 1)
@@ -26,4 +26,6 @@ print(ht.get("Anton1"))
 print(ht.get("Anton2"))
 print(ht.get("Anton3"))
 
+ht.delete("Anton1")
 
+print(ht.get("Anton1"))

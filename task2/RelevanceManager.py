@@ -20,7 +20,9 @@ class RelevanceManager:
 
         def get_relevance_value_by_params(self, params: list[int]) -> int:
             if len(self.attributes) != len(params):
-                raise ValueError('Количество признаков документа не равно числу параметров')
+                raise ValueError(
+                    'number of document attributes is not equal to the number of parameters'
+                )
 
             if self.__cached_relevance_value < 0:
                 self.__cached_relevance_value = self.__calculate_relevance(params)
@@ -50,12 +52,14 @@ class RelevanceManager:
         num_params = int(input())
 
         if not 0 < num_params < 100:
-            raise Exception('Неверный диапазон')
+            raise Exception('Invalid range params')
 
         self.__params = list(map(int, input().split(' ')))
 
         if num_params != len(self.__params):
-            raise Exception('количество параметров не равно количеству введенных параметров')
+            raise Exception(
+                'number of parameters is not equal to the number of parameters entered'
+            )
 
         num_documents = int(input())
 
@@ -65,7 +69,9 @@ class RelevanceManager:
             attributes = list(map(int, input().split(' ')))
 
             if len(attributes) != num_params:
-                raise Exception('количество атрибутов документа не равно количеству введенных параметров')
+                raise Exception(
+                    'number of document attributes is not equal to the number of parameters entered'
+                )
 
             self.__documents.append(RelevanceManager.Document(document_index + self.DOCUMENT_INDEX_OFFSET, attributes))
 
@@ -80,7 +86,7 @@ class RelevanceManager:
                 case self.CHANGE_ATTRIBUTE_OF_DOCUMENT_QUERY:
                      self.__change_attribute_of_document(int(query[1]) - self.DOCUMENT_INDEX_OFFSET, int(query[2]), int(query[3]))
                 case _:
-                    raise Exception('Выбран не существующий пункт меню')
+                    raise Exception('A non-existent menu item is selected')
 
     def __get_most_relevant_documents(
             self,

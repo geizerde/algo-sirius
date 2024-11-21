@@ -77,7 +77,9 @@ class RedBlackTree:
     root: Optional['Node'] = None
 
     def __str__(self):
-        return self.__tree_print(self.root, 'root:' + str(self.root.color) + ':')
+        if self.root:
+            return self.__tree_print(self.root, 'root:' + str(self.root.color) + ':')
+        return 'Tree is empty'
 
     def __tree_print(
             self,
@@ -142,8 +144,7 @@ class RedBlackTree:
 
     def __rotate_to_left(self, node: Node) -> None:
         if node.parent is None:
-            raise Exception(
-                'Не возможно совершить поворот налево т.к. справа нет ноды, которая могла бы стать новым корнем поддерва')
+            raise Exception('Leaf does not have a parent whose place it wants to take')
 
         old_root = node.parent
         new_root = node
@@ -161,8 +162,7 @@ class RedBlackTree:
 
     def __rotate_to_right(self, node: Node) -> None:
         if node.parent is None:
-            raise Exception(
-                'Не возможно совершить поворот направо т.к. слева нет ноды, которая могла бы стать новым корнем поддерва')
+            raise Exception('Leaf does not have a parent whose place it wants to take')
 
         old_root = node.parent
         new_root = node
@@ -261,7 +261,7 @@ class RedBlackTree:
         ]
 
         for replacement_node in replacement_nodes:
-            if replacement_node.color == node.color:
+            if replacement_node.color == NodeColor.RED:
                 return replacement_node
 
         return replacement_nodes.pop()
@@ -282,44 +282,92 @@ class RedBlackTree:
 
         return current
 
-    # def __node_has_only_one_red_child(self, node: Node) -> bool:
-    #     left_is_red = node.left is not None and node.left.color == NodeColor.RED
-    #     right_is_red = node.right is not None and node.right.color == NodeColor.RED
-    #
-    #     return (left_is_red and node.right is None) or (right_is_red and node.left is None)
-    #
-    #
-    # def __balance_before_delete(self, node: Node) -> None:
-    #     if node.color != NodeColor.BLACK:
-    #         return
-    #
-    #     if self.__node_has_only_one_red_child(node):
-    #         red_child = self.__get_most_suitable_replacement_node(node)
-    #         node.data, red_child.data = red_child.data, node.data
-    #         self.__update_parent_link(red_child, None)
-    #
-    #
-    #
-    #
-    #
-    #
-    #
-    #
-    # def delete(self, key: int) -> None:
-    #     node = self.get(key)
-    #
-    #     if node is None:
-    #         return
-    #
-    #     if node.left and node.right:
-    #         suitable_node = self.__get_most_suitable_replacement_node(node)
-    #
-    #         node.color, suitable_node.color = suitable_node.color, node.color
-    #         node.data, suitable_node.data = suitable_node.data, node.data
-    #
-    #         self.__balance_before_delete(suitable_node)
+    def delete(self, key: int) -> None:
+        node_to_delete = self.get(key)
+        if node_to_delete is None:
+            raise Exception(f"Sheet with the key {key} is not in the tree.")
 
-        # self.__delete_case1(node)
+        suitable_node = self.__get_most_suitable_replacement_node(node_to_delete)
+
+        if suitable_node:
+            node_to_delete.key, suitable_node.key = suitable_node.key, node_to_delete.key
+            node_to_delete.data, suitable_node.data = suitable_node.data, node_to_delete.data
+            node_to_delete = suitable_node
+
+        child = node_to_delete.left or node_to_delete.right
+
+        if child:
+            self.__replace_node(node_to_delete, child)
+            child.color = node_to_delete.color
+        else:
+            if node_to_delete.is_root():
+                self.root = None
+            else:
+                if node_to_delete.color == NodeColor.BLACK:
+                    self.__balance_before_delete(node_to_delete)
+                self.__replace_node(node_to_delete, None)
+
+    def __replace_node(self, node: Node, child: Optional[Node]) -> None:
+        self.__update_parent_link(node, child)
+        if child:
+            child.parent = node.parent
+
+    def __balance_before_delete(self, node):
+        while node != self.root and node.color == NodeColor.BLACK:
+            if node == node.parent.left:
+                brother = node.parent.right
+                if brother.color == NodeColor.RED:
+                    brother.color = NodeColor.BLACK
+                    node.parent.color = NodeColor.RED
+                    self.__rotate_to_left(brother)
+                    brother = node.parent.right
+
+                if (brother.left is None or brother.left.color == NodeColor.BLACK) and \
+                        (brother.right is None or brother.right.color == NodeColor.BLACK):
+                    brother.color = NodeColor.RED
+                    node = node.parent
+                else:
+                    if brother.right is None or brother.right.color == NodeColor.BLACK:
+                        if brother.left:
+                            brother.left.color = NodeColor.BLACK
+                        brother.color = NodeColor.RED
+                        self.__rotate_to_right(brother.left)
+                        brother = node.parent.right
+
+                    brother.color = node.parent.color
+                    node.parent.color = NodeColor.BLACK
+                    if brother.right:
+                        brother.right.color = NodeColor.BLACK
+                    self.__rotate_to_left(brother)
+                    node = self.root
+            else:
+                brother = node.parent.left
+                if brother.color == NodeColor.RED:
+                    brother.color = NodeColor.BLACK
+                    node.parent.color = NodeColor.RED
+                    self.__rotate_to_right(brother)
+                    brother = node.parent.left
+
+                if (brother.left is None or brother.left.color == NodeColor.BLACK) and \
+                        (brother.right is None or brother.right.color == NodeColor.BLACK):
+                    brother.color = NodeColor.RED
+                    node = node.parent
+                else:
+                    if brother.left is None or brother.left.color == NodeColor.BLACK:
+                        if brother.right:
+                            brother.right.color = NodeColor.BLACK
+                        brother.color = NodeColor.RED
+                        self.__rotate_to_left(brother.right)
+                        brother = node.parent.left
+
+                    brother.color = node.parent.color
+                    node.parent.color = NodeColor.BLACK
+                    if brother.left:
+                        brother.left.color = NodeColor.BLACK
+                    self.__rotate_to_right(brother)
+                    node = self.root
+
+        node.color = NodeColor.BLACK
 
 # tree = RedBlackTree()
 #
@@ -339,13 +387,22 @@ class RedBlackTree:
 # tree.add(72, 'ЕЕЕЕ')
 # tree.add(2, 'ЕЕЕЕ')
 # tree.add(5, 'ЕЕЕЕ')
-
+#
 # tree.delete(27)
-# tree.delete(52)
+# tree.delete(23)
+# tree.delete(20)
+# tree.delete(8)
+# tree.delete(7)
 # tree.delete(53)
 # tree.delete(54)
-# tree.delete(55)
-# tree.delete(23)
+# tree.delete(52)
+# tree.delete(6)
+# tree.delete(5)
+# tree.delete(60)
+# tree.delete(72)
 # tree.delete(56)
+# tree.delete(55)
+# tree.delete(2)
+# tree.delete(96)
 
 # print(tree)
