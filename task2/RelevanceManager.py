@@ -13,10 +13,13 @@ class RelevanceManager:
             self.attributes = attributes
 
         def __str__(self) -> str:
-            return str(self.__id)
+            return str(self.__id) + ':' + str(self.__cached_relevance_value)
 
         def __repr__(self) -> str:
-            return str(self.__id)
+            return str(self.__id) + ':' + str(self.__cached_relevance_value)
+
+        def get_id(self) -> int:
+            return self.__id
 
         def get_relevance_value_by_params(self, params: list[int]) -> int:
             if len(self.attributes) != len(params):
@@ -46,7 +49,8 @@ class RelevanceManager:
             self.__cached_relevance_value = -1
 
     __params: list[int]
-    __documents: list[Document]
+    __documents: dict[int, Document] = {}
+    __documents_ids_by_relevance: list[int] = []
 
     def __init__(self):
         num_params = int(input())
@@ -63,8 +67,6 @@ class RelevanceManager:
 
         num_documents = int(input())
 
-        self.__documents = []
-
         for document_index in range(num_documents):
             attributes = list(map(int, input().split(' ')))
 
@@ -73,7 +75,17 @@ class RelevanceManager:
                     'number of document attributes is not equal to the number of parameters entered'
                 )
 
-            self.__documents.append(RelevanceManager.Document(document_index + self.DOCUMENT_INDEX_OFFSET, attributes))
+            document_id = document_index + self.DOCUMENT_INDEX_OFFSET
+
+            self.__documents[document_id] = RelevanceManager.Document(document_id, attributes)
+
+        self.__documents_ids_by_relevance = [
+            document.get_id() for document in sorted(
+                self.__documents.values(),
+                key=lambda document: document.get_relevance_value_by_params(self.__params),
+                reverse=True
+            )
+        ]
 
         num_queries = int(input())
 
@@ -84,19 +96,15 @@ class RelevanceManager:
                 case self.GET_MOST_RELEVANT_DOCUMENTS_QUERY:
                      print(self.__get_most_relevant_documents(int(query[1])))
                 case self.CHANGE_ATTRIBUTE_OF_DOCUMENT_QUERY:
-                     self.__change_attribute_of_document(int(query[1]) - self.DOCUMENT_INDEX_OFFSET, int(query[2]), int(query[3]))
+                     self.__change_attribute_of_document(int(query[1]), int(query[2]), int(query[3]))
                 case _:
                     raise Exception('A non-existent menu item is selected')
 
     def __get_most_relevant_documents(
             self,
             count: int = 10
-    ) -> list[Document]:
-        return sorted(
-            self.__documents,
-            key=lambda document: document.get_relevance_value_by_params(self.__params),
-            reverse=True
-        )[:count]
+    ) -> list[int]:
+        return self.__documents_ids_by_relevance[:count]
 
     def __change_attribute_of_document(
             self,
@@ -104,10 +112,32 @@ class RelevanceManager:
             attribute_index: int,
             new_value: int
     ) -> None:
-        self.__documents[document_index].change_attribute_of_document(
-            attribute_index,
-            new_value
+        self.__documents_ids_by_relevance.remove(document_index)
+
+        document = self.__documents[document_index]
+
+        document.change_attribute_of_document(attribute_index, new_value)
+
+        self.__documents_ids_by_relevance.insert(
+            self.__get_insert_position_by_document(document),
+            document_index
         )
 
+    def __get_insert_position_by_document(self, document: Document) -> int:
+        relevance = document.get_relevance_value_by_params(self.__params)
+        low, high = 0, len(self.__documents_ids_by_relevance)
 
-RelevanceManager()
+        while low < high:
+            mid = (low + high) // 2
+
+            if self.__documents[
+                self.__documents_ids_by_relevance[mid]
+            ].get_relevance_value_by_params(self.__params) < relevance:
+                high = mid
+            else:
+                low = mid + 1
+
+        return low
+
+rm = RelevanceManager()
+
